@@ -28,5 +28,6 @@
 </dependency>
 ```
 ## 目前Demo功能：
+    1.JSAPI下单
     1.下载交易账单
 
