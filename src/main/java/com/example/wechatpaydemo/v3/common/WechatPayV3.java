@@ -70,6 +70,50 @@ public class WechatPayV3 {
     }
 
     /**
+     * 微信V3接口统一入口
+     * 可扩展，支持所有V3版本的请求
+     * 如果请求方式为 GET，requestBody不要直接用 null，改用 "" 否则会签名错误
+     *
+     * @param requestBody 请求参数主体
+     * @param method      请求方式
+     * @param uri         请求接口URI
+     */
+    public String wechatPay(
+            String requestBody,
+            RequestMethod method,
+            String uri
+    ) {
+        if (RequestMethod.GET != method && Objects.isNull(requestBody)) {
+            throw new RuntimeException("非Get请求时requestBody不能为空");
+        }
+
+        IJPayHttpResponse response;
+        try {
+            response = WxPayApi.v3(
+                    method,
+                    WxDomain.CHINA.getType(),
+                    uri,
+                    wechatConfig.getMchId(),
+                    wechatConfig.getSerialNo(),
+                    null,
+                    getPrivateKey(),
+                    requestBody
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+
+        if (SUCCESS_CODE != response.getStatus()) {
+            throw new RuntimeException(response.getBody());
+        }
+
+        // 验签
+        checkedSignature(response);
+
+        return response.getBody();
+    }
+
+    /**
      * 申请交易账单
      *
      * @param billDate 账单日期（仅支持三个月内的账单下载申请）

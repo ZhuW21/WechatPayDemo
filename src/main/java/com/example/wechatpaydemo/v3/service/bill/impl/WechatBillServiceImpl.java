@@ -17,10 +17,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,7 +84,7 @@ public class WechatBillServiceImpl implements WechatBillService {
                 HttpResponse httpResponse = wechatPayV3.billDownload(token);
         ) {
 
-            if (httpResponse.getStatus() != 200){
+            if (httpResponse.getStatus() != 200) {
                 return null;
             }
 
@@ -129,9 +136,7 @@ public class WechatBillServiceImpl implements WechatBillService {
                         SplitIndex splitIndex = field.getAnnotation(SplitIndex.class);
                         if (splitIndex != null) {
                             int index = splitIndex.value();
-                            field.setAccessible(true);
-                            field.set(tradeBillLineResp, data[index]);
-                            field.setAccessible(false);
+                            setFieldValue(tradeBillLineResp, field, data[index]);
                         }
                     }
                     tradeBillLineRespList.add(tradeBillLineResp);
@@ -146,9 +151,7 @@ public class WechatBillServiceImpl implements WechatBillService {
                     SplitIndex splitIndex = field.getAnnotation(SplitIndex.class);
                     if (splitIndex != null) {
                         int index = splitIndex.value();
-                        field.setAccessible(true);
-                        field.set(tradeBillTotalResp, totalDataArray[index]);
-                        field.setAccessible(false);
+                        setFieldValue(tradeBillTotalResp, field, totalDataArray[index]);
                     }
                 }
 
@@ -160,6 +163,57 @@ public class WechatBillServiceImpl implements WechatBillService {
             return tradeBillDataResp;
         } catch (Exception e) {
             throw new RuntimeException("解析交易账单文件响应数据异常：" + e);
+        }
+    }
+
+    /**
+     * 使用反射设置对象的属性值。
+     *
+     * @param obj   要设置属性值的对象
+     * @param field 属性
+     * @param value 属性值
+     * @throws IllegalAccessException 如果没有足够的权限访问属性
+     */
+    public static void setFieldValue(Object obj, Field field, String value)
+            throws IllegalAccessException, IntrospectionException, InvocationTargetException {
+
+        Class<?> aClass = obj.getClass();
+        PropertyDescriptor propertyDescriptor = new PropertyDescriptor(field.getName(), aClass);
+        Method method = propertyDescriptor.getWriteMethod();
+        String type = field.getGenericType()
+                .toString();
+        if (!StringUtils.hasText(value)) {
+            return;
+        }
+        value = value.trim();
+        switch (type) {
+            case "class java.lang.String":
+                method.invoke(obj, value);
+                break;
+            case "class java.lang.Integer":
+                method.invoke(obj, Double.valueOf(value)
+                        .intValue());
+                break;
+            case "class java.lang.Long":
+                method.invoke(obj, Double.valueOf(value)
+                        .longValue());
+                break;
+            case "class java.lang.Double":
+                method.invoke(obj, Double.valueOf(value));
+                break;
+            case "class java.lang.Float":
+                method.invoke(obj, Double.valueOf(value)
+                        .floatValue());
+                break;
+            case "class java.lang.Character":
+                method.invoke(obj, value.toCharArray()[0]);
+                break;
+            case "class java.math.BigDecimal":
+                method.invoke(obj, new BigDecimal(value).setScale(4, RoundingMode.HALF_UP));
+                break;
+            default:
+                method.invoke(obj, (Object) null);
+                break;
         }
     }
 }
