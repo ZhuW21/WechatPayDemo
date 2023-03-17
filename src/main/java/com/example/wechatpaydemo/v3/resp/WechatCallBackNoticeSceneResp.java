@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 /**
  * 支付回调 - 支付场景信息
  *
- * @author yewei
+ * @author qingzhou
  * @date 2023-03-17 10:25
  **/
 @Data

@@ -1,10 +1,6 @@
 package com.example.wechatpaydemo.v3.controller.callback;
 
-import com.alibaba.fastjson.JSONObject;
-import com.example.wechatpaydemo.v3.resp.WechatPayCallBackResp;
 import com.example.wechatpaydemo.v3.service.pay.WechatCallBackService;
-import com.ijpay.core.kit.HttpKit;
-import com.ijpay.core.kit.WxPayKit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +8,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
 
 /**
  * 微信支付回调控制层
  *
- * @author yewei
+ * @author qingzhou
  * @date 2023-03-17 9:34
  **/
 @Slf4j
