@@ -129,7 +129,7 @@ public class WechatPayV3 {
             }
             Map<String, String> params = new HashMap<>(12);
             params.put("bill_date", billDate);
-            params.put("bill_type", "ALL");
+            //params.put("bill_type", "REFUND");
             // 返回格式为.gzip的压缩包账单，不设置默认为数据流
             //params.put("tar_type", "GZIP");
 
@@ -153,8 +153,8 @@ public class WechatPayV3 {
             return JSON.parseObject(result.getBody(), WechatTradeBillDownloadResp.class);
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     /**

@@ -62,7 +62,7 @@ public class WechatBillServiceImpl implements WechatBillService {
                 .isV3(wechatMerchant.getIsV3())
                 .v3ApiKey(wechatMerchant.getV3ApiKey())
                 .serialNo(wechatMerchant.getSerialNo())
-                .privateCer(wechatMerchant.getPrivateCer())
+                .privateCer(wechatMerchant.getPrivateCer().replaceAll("\\s+", ""))
                 .build();
     }
 
@@ -106,6 +106,7 @@ public class WechatBillServiceImpl implements WechatBillService {
 
             // 解析数据流
             return parseBody(httpResponse.body());
+            //or 输出文件
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -117,7 +118,7 @@ public class WechatBillServiceImpl implements WechatBillService {
      * @param body 响应数据
      * @return 交易账单文件数据
      */
-    private TradeBillDataResp parseBody(String body) {
+    public TradeBillDataResp parseBody(String body) {
         TradeBillDataResp tradeBillDataResp = null;
         List<TradeBillLineResp> tradeBillLineRespList = new ArrayList<>();
         try {
@@ -136,7 +137,11 @@ public class WechatBillServiceImpl implements WechatBillService {
                         SplitIndex splitIndex = field.getAnnotation(SplitIndex.class);
                         if (splitIndex != null) {
                             int index = splitIndex.value();
-                            setFieldValue(tradeBillLineResp, field, data[index]);
+                            String value = null;
+                            if(index <= data.length -1) {
+                                value = data[index];
+                            } 
+                            setFieldValue(tradeBillLineResp, field, value);
                         }
                     }
                     tradeBillLineRespList.add(tradeBillLineResp);
@@ -151,7 +156,11 @@ public class WechatBillServiceImpl implements WechatBillService {
                     SplitIndex splitIndex = field.getAnnotation(SplitIndex.class);
                     if (splitIndex != null) {
                         int index = splitIndex.value();
-                        setFieldValue(tradeBillTotalResp, field, totalDataArray[index]);
+                        String value = null;
+                        if(index <= totalDataArray.length -1) {
+                            value = totalDataArray[index];
+                        }
+                        setFieldValue(tradeBillTotalResp, field, value);
                     }
                 }
 
@@ -216,4 +225,5 @@ public class WechatBillServiceImpl implements WechatBillService {
                 break;
         }
     }
+    
 }
